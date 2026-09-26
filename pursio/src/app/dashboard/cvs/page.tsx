@@ -1,0 +1,37 @@
+"use client";
+import { useRef, useState } from "react";
+import { Upload, FileText, Download, MoreHorizontal, Plus } from "lucide-react";
+import { mockCVs } from "@/lib/mock-data";
+import { useStoredState } from "@/lib/workspace-state";
+import { storeDocument, downloadDocument, removeDocument } from "@/lib/documents";
+import { useWorkspace } from "@/components/shell/WorkspaceProvider";
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import type { CV } from "@/lib/types";
+type Document = CV & { local?: boolean };
+export default function DocumentsPage() {
+  const [documents, saveDocuments] = useStoredState<Document[]>("documents", mockCVs);
+  const { notify } = useWorkspace(); const input = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false); const [dragging, setDragging] = useState(false);
+  const [dialog, setDialog] = useState<{ type: "rename" | "delete"; doc: Document } | null>(null);
+  const [label, setLabel] = useState("");
+  async function add(file?: File) {
+    if (!file || busy) return;
+    if (!/\.(pdf|docx)$/i.test(file.name)) { notify("Choose a PDF or DOCX file."); return; }
+    if (!file.size || file.size > 10 * 1024 * 1024) { notify("Choose a file between 1 byte and 10 MB."); return; }
+    setBusy(true); const id = crypto.randomUUID();
+    try {
+      await storeDocument(id, file);
+      const document: Document = { id, label: file.name.replace(/\.[^.]+$/, ""), fileName: file.name, version: 1, isDefault: documents.length === 0, roleFocus: "Stored on this device. Content has not been analyzed.", skills: [], usageCount: 0, uploadedAt: new Date().toISOString(), status: "ready", local: true };
+      if (!saveDocuments(previous => [...previous, document])) { await removeDocument(id); throw new Error("Storage unavailable"); }
+      notify("Document saved on this device. It has not been uploaded to a server.");
+    } catch { notify("Could not save the document. Your browser may have limited storage."); } finally { setBusy(false); if (input.current) input.current.value = ""; }
+  }
+  return <div className="workspace-page !max-w-[980px]"><div className="mb-8 flex flex-wrap items-start justify-between gap-5"><div><p className="eyebrow mb-3">Your experience, on paper</p><h1 className="page-heading">Documents</h1><p className="mt-3 text-sm text-[var(--app-muted)]">Keep the right version ready for your next opportunity.</p></div><Button loading={busy} onClick={() => input.current?.click()}><Plus size={16} />Add document</Button></div>
+    <input ref={input} type="file" accept=".pdf,.docx" className="sr-only" aria-label="Choose a CV document" onChange={e => void add(e.target.files?.[0])} />
+    <div className="divide-y divide-[var(--app-line)] border-y border-[var(--app-line)]">{documents.map(doc => <article key={doc.id} className="flex gap-3 py-6 sm:gap-5"><div className="flex h-11 w-10 shrink-0 items-center justify-center rounded-lg border border-[var(--app-line)] bg-[var(--app-surface)]"><FileText size={19} strokeWidth={1.5} /></div><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><h2 className="break-words text-sm font-medium">{doc.label}</h2>{doc.isDefault && <span className="rounded border border-[var(--app-line)] px-1.5 text-[10px] text-[var(--app-secondary)]">Default</span>}</div><p className="mt-1 break-all text-xs text-[var(--app-muted)]">{doc.fileName}</p><p className="mt-3 text-xs leading-5 text-[var(--app-secondary)]">{doc.local ? "Stored on this device · Not analyzed" : `${doc.roleFocus} · Sample document`}</p>{doc.skills.length > 0 && <p className="mt-2 text-xs text-[var(--app-muted)]">{doc.skills.slice(0, 4).join(" · ")}</p>}</div><div className="flex shrink-0 items-start gap-1">{doc.local && <Button variant="ghost" size="icon" aria-label={`Download ${doc.label}`} onClick={async () => { try { await downloadDocument(doc.id, doc.fileName); } catch { notify("This file is no longer available on this device. Please add it again."); } }}><Download size={16} /></Button>}<DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon" aria-label={`Options for ${doc.label}`}><MoreHorizontal size={17} /></Button></DropdownMenuTrigger><DropdownMenuContent align="end">{!doc.isDefault && <DropdownMenuItem onSelect={() => { if (!saveDocuments(previous => previous.map(d => ({ ...d, isDefault: d.id === doc.id })))) notify("Could not save the default document."); }}>Set as default</DropdownMenuItem>}<DropdownMenuItem onSelect={() => { setLabel(doc.label); setDialog({ type: "rename", doc }); }}>Rename</DropdownMenuItem><DropdownMenuItem danger onSelect={() => setDialog({ type: "delete", doc })}>Remove document</DropdownMenuItem></DropdownMenuContent></DropdownMenu></div></article>)}{!documents.length && <p className="py-10 text-center text-sm text-[var(--app-muted)]">No documents yet. Add your first CV below.</p>}</div>
+    <button disabled={busy} onClick={() => input.current?.click()} onDragOver={e => { e.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={e => { e.preventDefault(); setDragging(false); void add(e.dataTransfer.files[0]); }} className={`mt-7 flex w-full flex-col items-center rounded-xl border border-dashed p-8 text-center ${dragging ? "border-[var(--app-accent)] bg-[var(--app-subtle)]" : "border-[var(--app-line-strong)] hover:bg-[var(--app-subtle)]"}`}><Upload size={22} strokeWidth={1.4} className="mb-3 text-[var(--app-muted)]" /><span className="text-sm">{busy ? "Saving document…" : "Drop a document here, or browse"}</span><span className="mt-2 text-xs text-[var(--app-muted)]">PDF or DOCX · Up to 10 MB · Stored on this device</span></button>
+    <Dialog open={!!dialog} onOpenChange={open => { if (!open) setDialog(null); }}><DialogContent><DialogHeader><DialogTitle>{dialog?.type === "rename" ? "Rename document" : "Remove document?"}</DialogTitle><DialogDescription>{dialog?.type === "rename" ? "Give this version a name you can recognize." : "This removes the document from this preview and deletes its locally stored file."}</DialogDescription></DialogHeader><form onSubmit={async e => { e.preventDefault(); if (!dialog) return; if (dialog.type === "rename") { if (saveDocuments(p => p.map(d => d.id === dialog.doc.id ? { ...d, label: label.trim() } : d))) setDialog(null); else notify("Could not save the new name."); } else { try { if (dialog.doc.local) await removeDocument(dialog.doc.id); const remaining = documents.filter(d => d.id !== dialog.doc.id); if (dialog.doc.isDefault && remaining[0]) remaining[0] = { ...remaining[0], isDefault: true }; if (!saveDocuments(remaining)) throw new Error(); setDialog(null); notify("Document removed."); } catch { notify("Could not remove this document. Please try again."); } } }}>{dialog?.type === "rename" && <input aria-label="Document name" autoFocus required maxLength={100} className="workspace-field" value={label} onChange={e => setLabel(e.target.value)} />}<DialogFooter><Button variant="secondary" type="button" onClick={() => setDialog(null)}>Cancel</Button><Button type="submit" disabled={dialog?.type === "rename" && !label.trim()}>{dialog?.type === "rename" ? "Save name" : "Remove"}</Button></DialogFooter></form></DialogContent></Dialog>
+  </div>;
+}
