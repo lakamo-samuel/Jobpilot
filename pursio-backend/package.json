@@ -1,0 +1,40 @@
+{
+  "name": "pursio-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --env-file=.env --import tsx --watch src/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node --env-file-if-exists=.env dist/server.js",
+    "typecheck": "tsc --noEmit",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "test": "node --import tsx --test src/**/*.test.ts"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1141.0",
+    "argon2": "^0.44.0",
+    "cors": "^2.8.5",
+    "drizzle-orm": "^0.45.3",
+    "express": "^5.1.0",
+    "file-type": "^22.1.1",
+    "helmet": "^8.1.0",
+    "multer": "^2.4.0",
+    "pg": "^8.16.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.0",
+    "@types/multer": "^2.2.0",
+    "@types/node": "^22.0.0",
+    "@types/pg": "^8.15.0",
+    "drizzle-kit": "^0.31.11",
+    "tsx": "^4.20.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

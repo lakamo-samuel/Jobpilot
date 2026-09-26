@@ -426,6 +426,7 @@ CV tailoring	Existing uploaded CVs first; external service later.
 Client discovery provider	Undecided; use compliant source adapters.
 Notifications	In-app first; optional email/push/Telegram/WhatsApp later.
 Hosting	UI/serverless + separate persistent worker is preferred.
+Billing	Deferred while the core application is built; normal workspace features remain free, and AI/automation payment rules will be designed later.
 15. Recommended First Build Slice
 Owner signs in and completes profile.
 Owner uploads a CV.
