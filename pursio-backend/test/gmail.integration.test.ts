@@ -32,6 +32,8 @@ const config = loadConfig({ DATABASE_URL: "postgresql://test:test@localhost:5432
     assert.ok(row);
     assert.ok(!row.encryptedRefreshToken.includes("private-refresh-token"));
     assert.equal((await service.status(owner.id)).email, "owner@gmail.com");
+    assert.deepEqual(await repository.claimDueSyncs(), [owner.id]);
+    assert.deepEqual(await repository.claimDueSyncs(), []);
     assert.equal((await service.sync(owner.id)).matched, 1);
     assert.equal((await service.messages(owner.id)).items.length, 1);
     await assert.rejects(service.sync(owner.id), (error: unknown) => error instanceof AppError && error.code === "gmail_sync_rate_limited");
