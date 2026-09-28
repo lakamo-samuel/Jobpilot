@@ -9,10 +9,12 @@ export class CvController {
     if (!row) { res.status(404).json({ error: "not_found" }); return; }
     res.json(row);
   };
+  getExtraction = async (req: Request, res: Response) => res.json(await this.service.getExtraction(req.user!.id, String(req.params.id)));
+  retryExtraction = async (req: Request, res: Response) => res.status(202).json(await this.service.retryExtraction(req.user!.id, String(req.params.id), req.traceId!));
   upload = async (req: Request, res: Response) => res.status(201).json(await this.service.upload(req.user!.id, req.body, req.file, req.traceId!));
   uploadVersion = async (req: Request, res: Response) => res.status(201).json(await this.service.upload(req.user!.id, req.body, req.file, req.traceId!, String(req.params.id)));
-  rename = async (req: Request, res: Response) => {
-    const row = await this.service.rename(req.user!.id, String(req.params.id), req.body, req.traceId!);
+  updateMetadata = async (req: Request, res: Response) => {
+    const row = await this.service.updateMetadata(req.user!.id, String(req.params.id), req.body, req.traceId!);
     if (!row) { res.status(404).json({ error: "not_found" }); return; }
     res.json(row);
   };
@@ -23,10 +25,8 @@ export class CvController {
   };
   download = async (req: Request, res: Response) => {
     const file = await this.service.download(req.user!.id, String(req.params.id));
-    res.setHeader("Content-Type", file.mimeType);
-    res.setHeader("Content-Length", file.body.length);
-    res.attachment(file.fileName);
-    res.send(file.body);
+    res.setHeader("Cache-Control", "no-store");
+    res.redirect(303, file.url);
   };
   delete = async (req: Request, res: Response) => { await this.service.delete(req.user!.id, String(req.params.id), req.traceId!); res.status(204).end(); };
 }

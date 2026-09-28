@@ -8,6 +8,41 @@
       "when": 1790416599048,
       "tag": "0000_demonic_storm",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790432356524,
+      "tag": "0001_melted_speed_demon",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790435147598,
+      "tag": "0002_organic_nightmare",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790495601402,
+      "tag": "0003_motionless_venom",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790552856644,
+      "tag": "0004_wise_bishop",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790553162296,
+      "tag": "0005_clever_tenebrous",
+      "breakpoints": true
     }
   ]
 }

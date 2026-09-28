@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
-import test from "node:test";
-import { defaultPolicy, policySchema } from "./agent.schema.js";
+import { test } from "@jest/globals";
+import { defaultPolicy, policySchema } from "../src/modules/agent/agent.schema.js";
 
 test("policy rejects auto-send threshold below qualification threshold", () => {
   assert.equal(policySchema.safeParse({ ...defaultPolicy, autoSendMinScore: 60 }).success, false);

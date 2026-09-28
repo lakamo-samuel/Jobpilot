@@ -21,7 +21,7 @@ export class OpportunityService {
   }
   setStatus(userId: string, id: string, body: unknown, traceId: string) {
     const { status } = manualStatusSchema.parse(body);
-    return this.repository.update(userId, opportunityIdSchema.parse(id), { status }, traceId);
+    return this.repository.setStatus(userId, opportunityIdSchema.parse(id), status, traceId);
   }
   delete(userId: string, id: string, traceId: string) { return this.repository.delete(userId, opportunityIdSchema.parse(id), traceId); }
 }

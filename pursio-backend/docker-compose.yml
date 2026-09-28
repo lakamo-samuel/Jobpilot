@@ -18,7 +18,6 @@ services:
 
   redis:
     image: ${REDIS_IMAGE:-redis:alpine}
-    profiles: [worker]
     restart: unless-stopped
     command: ["redis-server", "--appendonly", "yes"]
     ports:

@@ -1,6 +1,7 @@
-import { boolean, index, integer, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid, bigint } from "drizzle-orm/pg-core";
+import { boolean, index, integer, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid, bigint, jsonb } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { users } from "./users.js";
+import type { ExtractedCvProfile } from "../../modules/cvs/cv-extraction.schema.js";
 
 export const cvStatus = pgEnum("cv_status", ["ready", "parsing", "error"]);
 export const cvs = pgTable("cvs", {
@@ -16,7 +17,10 @@ export const cvs = pgTable("cvs", {
   version: integer("version").notNull(),
   isDefault: boolean("is_default").notNull().default(false),
   roleFocus: text("role_focus").notNull().default(""),
-  status: cvStatus("status").notNull().default("ready"),
+  status: cvStatus("status").notNull().default("parsing"),
+  extractedText: text("extracted_text"),
+  extractedProfile: jsonb("extracted_profile").$type<ExtractedCvProfile>(),
+  extractionError: text("extraction_error"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
 }, (t) => [

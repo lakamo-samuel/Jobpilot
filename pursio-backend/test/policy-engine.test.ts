@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
-import test from "node:test";
-import { evaluateEmailSend, type SendContext, type SendPolicy } from "./policy-engine.js";
+import { test } from "@jest/globals";
+import { evaluateEmailSend, type SendContext, type SendPolicy } from "../src/agent/policy/policy-engine.js";
 const policy: SendPolicy = { paused: false, globalMode: "auto", minMatchScore: 70, autoSendMinScore: 85, maxDailyOutreach: 5, exclusions: [] };
 const context: SendContext = { matchScore: 90, hardRulePass: true, companyName: "Example", companyDomain: "example.com", doNotContact: false, risk: "low", hasUnknowns: false, sentToday: 0, localTime: "12:00" };
 const decide = (p: Partial<SendPolicy> = {}, c: Partial<SendContext> = {}) => evaluateEmailSend({ ...policy, ...p }, { ...context, ...c });
